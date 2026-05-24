@@ -66,6 +66,31 @@ function makeImageFilename(url) {
   return WebCaptureUtils.domainTimestampFilename('png', 'fullpage', domain);
 }
 
+
+function makeDownloadVideoFilename(url, pageUrl, index = 1) {
+  const domain = WebCaptureUtils.safeFilename(getDomain(pageUrl || url));
+  const extMatch = url.match(/\.(mp4|webm|mov|m4v|m3u8)(?:\?|$)/i);
+  const ext = extMatch ? extMatch[1].toLowerCase() : 'mp4';
+  return `${domain}_${buildTimestamp()}_video_${String(index).padStart(3, '0')}.${ext}`;
+}
+
+async function downloadVideoWithFallback(url, filename) {
+  try {
+    await downloadUrl(url, filename);
+    return;
+  } catch (e) {
+    const res = await fetch(url, { credentials: 'include', cache: 'no-store' });
+    if (!res.ok) throw new Error(`Failed to fetch video: ${res.status}`);
+    const blob = await res.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    try {
+      await downloadUrl(objectUrl, filename);
+    } finally {
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 30_000);
+    }
+  }
+}
+
 function makeDownloadImageFilename(url, pageUrl, index = 1) {
   const domain = WebCaptureUtils.safeFilename(getDomain(pageUrl || url));
   const ext = (() => {
@@ -190,6 +215,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const url = WebCaptureUtils.guessFullSizeUrl(message.url);
         const filename = makeDownloadImageFilename(url, sender?.tab?.url, message.index || 1);
         await downloadUrl(url, filename);
+        sendResponse({ ok: true });
+      } catch (error) {
+        sendResponse({ ok: false, error: error.message });
+      }
+      return;
+    }
+
+    if (message.type === 'DOWNLOAD_VIDEO_URL') {
+      try {
+        const selected = message.qualities?.[message.qualityIndex] || null;
+        const url = selected?.url || message.url;
+        const filename = makeDownloadVideoFilename(url, sender?.tab?.url, message.index || 1);
+        await downloadVideoWithFallback(url, filename);
         sendResponse({ ok: true });
       } catch (error) {
         sendResponse({ ok: false, error: error.message });
