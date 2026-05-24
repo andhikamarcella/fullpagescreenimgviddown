@@ -1,0 +1,106 @@
+:root {
+  color-scheme: dark;
+  --bg: #0f1115;
+  --card: #171a21;
+  --card2: #1f2530;
+  --text: #f4f7ff;
+  --muted: #99a3b5;
+  --accent: #47a8ff;
+  --accent2: #3b82f6;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  width: 500px;
+  font-family: Inter, Segoe UI, Roboto, system-ui, sans-serif;
+  background: linear-gradient(180deg, #0f1115, #0b0d12);
+  color: var(--text);
+}
+.app { padding: 14px; }
+.app-header { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+.logo { width: 42px; height: 42px; }
+h1 { font-size: 18px; margin: 0; }
+h2 { margin: 0 0 8px; font-size: 16px; }
+p { margin: 4px 0; color: var(--muted); font-size: 12px; }
+.tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+.tab {
+  flex: 1;
+  border: 0;
+  color: var(--text);
+  background: #1a202a;
+  border-radius: 10px;
+  padding: 8px;
+  cursor: pointer;
+  transition: transform .15s ease, background .15s ease;
+}
+.tab:hover { transform: translateY(-1px); background: #202837; }
+.tab.active { background: var(--accent2); }
+.panel { display: none; }
+.panel.active { display: block; }
+.card {
+  background: linear-gradient(160deg, var(--card), var(--card2));
+  border: 1px solid #252c3b;
+  border-radius: 14px;
+  padding: 12px;
+}
+.actions, .row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.btn {
+  border: 1px solid #384056;
+  color: var(--text);
+  background: #1b2230;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all .16s ease;
+}
+.btn:hover { background: #2a3549; }
+.btn.primary { background: var(--accent2); border-color: #5ba3ff; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.status { min-height: 18px; }
+.progress-wrap {
+  width: 100%;
+  height: 8px;
+  background: #101726;
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+.progress {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, #47a8ff, #6f89ff);
+  transition: width .2s ease;
+}
+.image-grid {
+  margin-top: 10px;
+  max-height: 300px;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.thumb {
+  border: 1px solid #2a3242;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #111723;
+}
+.thumb img {
+  width: 100%;
+  height: 90px;
+  object-fit: cover;
+  display: block;
+}
+.thumb-info { padding: 6px; font-size: 11px; color: var(--muted); }
+.thumb .btn { width: 100%; margin-top: 4px; padding: 5px 6px; font-size: 11px; }
+.switch-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 13px; }
+select {
+  margin-left: auto;
+  background: #1b2230;
+  color: white;
+  border: 1px solid #394257;
+  border-radius: 8px;
+  padding: 5px 8px;
+}
