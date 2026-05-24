@@ -74,13 +74,25 @@ function makeDownloadVideoFilename(url, pageUrl, index = 1) {
   return `${domain}_${buildTimestamp()}_video_${String(index).padStart(3, '0')}.${ext}`;
 }
 
-async function downloadVideoWithFallback(url, filename) {
+function buildRequestHeaders(pageUrl) {
+  if (!pageUrl) return [];
+  let origin = '';
+  try { origin = new URL(pageUrl).origin; } catch {}
+  const headers = [{ name: 'Referer', value: pageUrl }];
+  if (origin) headers.push({ name: 'Origin', value: origin });
+  return headers;
+}
+
+async function downloadVideoWithFallback(url, filename, pageUrl) {
+  const headers = buildRequestHeaders(pageUrl);
   try {
-    await downloadUrl(url, filename);
+    await downloadUrl(url, filename, headers);
     return;
   } catch (e) {
-    const res = await fetch(url, { credentials: 'include', cache: 'no-store' });
+    const res = await fetch(url, { credentials: 'include', cache: 'no-store', referrer: pageUrl || undefined });
     if (!res.ok) throw new Error(`Failed to fetch video: ${res.status}`);
+    const contentType = (res.headers.get('content-type') || '').toLowerCase();
+    if (contentType.includes('text/html')) throw new Error('Server returned HTML instead of video stream.');
     const blob = await res.blob();
     const objectUrl = URL.createObjectURL(blob);
     try {
@@ -179,10 +191,11 @@ async function startFullPageCapture() {
   }
 }
 
-async function downloadUrl(url, filename) {
+async function downloadUrl(url, filename, headers = []) {
   return chrome.downloads.download({
     url,
     filename,
+    headers,
     saveAs: false,
     conflictAction: 'uniquify'
   });
@@ -214,7 +227,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       try {
         const url = WebCaptureUtils.guessFullSizeUrl(message.url);
         const filename = makeDownloadImageFilename(url, sender?.tab?.url, message.index || 1);
-        await downloadUrl(url, filename);
+        await downloadUrl(url, filename, buildRequestHeaders(sender?.tab?.url));
         sendResponse({ ok: true });
       } catch (error) {
         sendResponse({ ok: false, error: error.message });
@@ -227,7 +240,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const selected = message.qualities?.[message.qualityIndex] || null;
         const url = selected?.url || message.url;
         const filename = makeDownloadVideoFilename(url, sender?.tab?.url, message.index || 1);
-        await downloadVideoWithFallback(url, filename);
+        await downloadVideoWithFallback(url, filename, sender?.tab?.url);
         sendResponse({ ok: true });
       } catch (error) {
         sendResponse({ ok: false, error: error.message });
