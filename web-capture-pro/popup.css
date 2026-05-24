@@ -104,3 +104,15 @@ select {
   border-radius: 8px;
   padding: 5px 8px;
 }
+.thumb video {
+  width: 100%;
+  height: 90px;
+  object-fit: cover;
+  display: block;
+  background: #000;
+}
+.quality-select {
+  width: 100%;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}

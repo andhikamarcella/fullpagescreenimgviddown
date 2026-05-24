@@ -7,14 +7,14 @@
 - ✅ Full page screenshot (scroll + auto stitch)
 - ✅ Download PNG hasil capture
 - ✅ Copy hasil screenshot ke clipboard
-- ✅ Smart image scanner:
+- ✅ Smart media scanner:
   - `img`
   - `picture/source`
   - lazy attributes (`data-src`, `data-original`, dll)
   - `background-image`
 - ✅ Filter resolusi (`All`, `>500px`, `>1000px`)
-- ✅ Download image satu per satu
-- ✅ Download all images
+- ✅ Download image/video satu per satu
+- ✅ Download all media
 - ✅ Full-size URL extraction (thumbnail/small/size query cleanup)
 - ✅ Click-to-download mode (Image Select Mode)
 - ✅ Dark dashboard UI (popup 500px)
@@ -89,3 +89,9 @@ Icon extension disediakan dalam format SVG:
 - `web-capture-pro/icons/icon.svg`
 
 > Note: Chrome action icon pada toolbar biasanya optimal memakai PNG size set (16/32/48/128). SVG tetap disertakan sebagai aset utama sesuai request.
+
+
+## Update v1.1
+
+- Tambah scan video (`<video>` + `<source>`) termasuk opsi kualitas jika tersedia dari web.
+- Tambah downloader video dengan fallback fetch blob untuk kasus URL langsung terblokir saat save biasa.

@@ -199,8 +199,9 @@
     }
   }
 
-  async function collectImageCandidates() {
+  async function collectMediaCandidates() {
     const items = [];
+    const media = [];
 
     document.querySelectorAll('img').forEach((img) => {
       const src = pickBestImageUrl(img);
@@ -278,19 +279,45 @@
       }
     });
 
-    return [...finalMap.values()].sort((a, b) => (b.width * b.height) - (a.width * a.height));
+    const images = [...finalMap.values()].sort((a, b) => (b.width * b.height) - (a.width * a.height));
+
+    document.querySelectorAll('video').forEach((video) => {
+      const sources = [];
+      const direct = WebCaptureUtils.normalizeImageUrl(video.currentSrc || video.src, location.href);
+      if (direct) sources.push({ url: direct, label: 'Auto' });
+      video.querySelectorAll('source').forEach((source) => {
+        const src = WebCaptureUtils.normalizeImageUrl(source.src, location.href);
+        if (!src) return;
+        const label = source.getAttribute('label') || source.getAttribute('res') || source.getAttribute('size') || source.getAttribute('data-quality') || source.type || 'Source';
+        sources.push({ url: src, label });
+      });
+      const dedup = [];
+      const seen = new Set();
+      for (const src of sources) {
+        if (seen.has(src.url)) continue;
+        seen.add(src.url); dedup.push(src);
+      }
+      if (!dedup.length) return;
+      media.push({
+        type: 'video',
+        url: dedup[0].url,
+        width: video.videoWidth || video.clientWidth || 0,
+        height: video.videoHeight || video.clientHeight || 0,
+        source: 'video',
+        qualities: dedup
+      });
+    });
+
+    images.forEach((item) => media.push({ ...item, type: 'image' }));
+    return media.sort((a, b) => (b.width * b.height) - (a.width * a.height));
   }
 
   async function runSafeScan() {
     if (scanPromise) return scanPromise;
 
     scanPromise = (async () => {
-      const images = await collectImageCandidates();
-      return {
-        ok: true,
-        images,
-        scannedCount: images.length
-      };
+      const media = await collectMediaCandidates();
+      return { ok: true, media, scannedCount: media.length };
     })();
 
     try {
@@ -334,7 +361,7 @@
         return;
       }
 
-      if (message.type === 'SCAN_IMAGES') {
+      if (message.type === 'SCAN_MEDIA') {
         try {
           const result = await runSafeScan();
           sendResponse(result);
